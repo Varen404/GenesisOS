@@ -19,8 +19,9 @@ make run
 
 | Chemin | Rôle |
 |---|---|
-| `boot/boot.asm` | Secteur de boot : charge le kernel depuis le disque |
+| `boot/boot.asm` | Secteur de boot : charge le kernel et passe en mode protégé |
 | `boot/print.inc` | Affichage de texte via le BIOS |
+| `boot/gdt.inc` | Table des segments du mode protégé |
 | `kernel/kernel.asm` | Kernel provisoire |
 | `docs/` | Explication de chaque étape |
 
@@ -30,7 +31,7 @@ make run
 
 - [x] Secteur de boot et affichage ([explications](docs/01-demarrage.md))
 - [x] Chargement du kernel depuis le disque
-- [ ] Passage en mode protégé 32 bits (GDT)
+- [x] Passage en mode protégé 32 bits ([explications](docs/02-mode-protege.md))
 - [ ] Kernel en C et driver d'écran
 - [ ] Interruptions, clavier et timer (IDT, PIC)
 - [ ] Shell minimal : `help`, `clear`, `echo`, `uptime`, `reboot`

@@ -7,7 +7,7 @@ Cette page explique ce qui se passe entre l'allumage de la machine et l'exécuti
 1. Le BIOS initialise la machine, puis lit le premier secteur du disque (512 octets).
 2. Si ce secteur se termine par la signature `0xAA55`, le BIOS le copie à l'adresse `0x7C00` et lui donne la main.
 3. Le secteur de boot prépare les registres, affiche `Bonjour`, puis lit le kernel sur le disque.
-4. Il saute à l'adresse du kernel, qui prend le relais.
+4. Il passe le processeur en 32 bits, puis saute à l'adresse du kernel ([étape 2](02-mode-protege.md)).
 
 ## Pourquoi deux programmes ?
 
@@ -29,7 +29,7 @@ Le Makefile calcule la taille du kernel en secteurs et la transmet à NASM avec 
 | Adresse physique | Contenu |
 |---|---|
 | `0x00000` à `0x004FF` | Table des interruptions et données du BIOS, à ne pas écraser |
-| `0x07C00` en descendant | Pile |
+| `0x07C00` en descendant | Pile du mode réel |
 | `0x07C00` à `0x07DFF` | Secteur de boot |
 | `0x10000` et au-delà | Kernel |
 | `0xB8000` | Mémoire de l'écran en mode texte |
@@ -42,12 +42,9 @@ Au démarrage, le processeur est en mode réel : il se comporte comme un 8086 de
 adresse physique = segment × 16 + offset
 ```
 
-Le kernel est donc chargé en `1000:0000`, ce qui donne `0x1000 × 16 + 0 = 0x10000`.
+Le kernel est chargé à l'adresse `0x10000`, que le BIOS attend sous la forme `1000:0000` : `0x1000 × 16 + 0 = 0x10000`.
 
-Deux détails du code découlent de ce système :
-
-- **Le saut initial `jmp 0x0000:start`.** Certains BIOS arrivent en `07C0:0000` et d'autres en `0000:7C00`. C'est la même adresse physique, mais pas les mêmes segments. Le saut long fixe `CS` à une valeur connue.
-- **Le kernel recharge `DS`.** `mov si, msg_loaded` ne donne qu'un offset, lu par rapport à `DS`. Si `DS` valait encore 0, le kernel lirait à la mauvaise adresse et afficherait n'importe quoi.
+Ce système explique aussi le saut initial `jmp 0x0000:start`. Certains BIOS arrivent en `07C0:0000` et d'autres en `0000:7C00`. C'est la même adresse physique, mais pas les mêmes segments. Le saut long fixe `CS` à une valeur connue.
 
 ## La lecture du disque
 
@@ -84,5 +81,4 @@ La feuille de route traite ces deux points : vérification de l'intégrité du k
 - Pourquoi `0xAA55` s'écrit-il `55 AA` dans le fichier ?
 - Que se passerait-il si on retirait `cld` ?
 - Pourquoi `KERNEL_SECTORS` est-il limité à 127 ?
-- Que verrait-on si le kernel ne rechargeait pas `DS` ?
 - Pourquoi `hlt` est-il placé dans une boucle ?

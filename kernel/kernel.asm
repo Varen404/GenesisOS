@@ -1,24 +1,33 @@
-; Kernel provisoire de GENESIS : il prouve que le chargement depuis le disque
-; fonctionne. Il tourne encore en mode reel et sera remplace par un kernel
-; 32 bits en C (etapes 2 et 3 de la feuille de route).
+; Kernel provisoire de GENESIS : il prouve que le processeur est en mode protege
+; 32 bits. Il sera remplace par un kernel en C a l'etape suivante.
+; Le bootloader a deja prepare les segments et la pile. Les interruptions restent
+; coupees, et ne devront etre reactivees qu'une fois une IDT en place.
 
-bits 16
-org 0                           ; le bootloader saute en 1000:0000
+bits 32
+org KERNEL_ADDRESS
+
+VGA_MEMORY equ 0xB8000          ; memoire de l'ecran en mode texte
+VGA_COLUMNS equ 80
+WHITE_ON_BLACK equ 0x0F
 
 kernel_start:
-    mov ax, cs                  ; CS vaut deja 0x1000 apres le saut long
-    mov ds, ax                  ; DS doit suivre pour atteindre nos donnees
-    mov es, ax
+    cld
+    mov esi, msg_protected
+    mov edi, VGA_MEMORY + VGA_COLUMNS * 2 ; ligne 1, sous le message du bootloader
+    mov ah, WHITE_ON_BLACK
 
-    mov si, msg_loaded
-    call print
+    ; Plus de BIOS ici : chaque case de l'ecran fait 2 octets, le caractere (AL)
+    ; puis sa couleur (AH), et stosw ecrit les deux d'un coup en memoire video.
+.next:
+    lodsb
+    test al, al
+    jz halt
+    stosw
+    jmp .next
 
 halt:
-    cli
     hlt
-    jmp halt
-
-%include "print.inc"
+    jmp halt                    ; hlt peut etre reveille par une NMI
 
 ; 0x82 est le "e accent aigu" de la page de code CP437 des ecrans VGA.
-msg_loaded: db "Kernel charg", 0x82, " depuis le disque", 13, 10, 0
+msg_protected: db "Mode prot", 0x82, "g", 0x82, " 32 bits actif", 0
