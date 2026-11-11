@@ -43,4 +43,3 @@ make run
 - [ ] Pagination et protection de la mémoire
 - [ ] Mode utilisateur (ring 3) et appels système
 - [ ] Démonstration d'un dépassement de tampon dans un programme, puis de sa protection par un canari de pile
->>>>>>> b408a87 ([ADD]Basic bootloader, kernel and a makefile)
