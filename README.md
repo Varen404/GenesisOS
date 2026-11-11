@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # GenesisOS
 myOS
 =======
